@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+
+    <application
+        android:allowBackup="true"
+        android:label="Salvox Charge Overlay"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/AppTheme">
+
+        <!--
+          Activity de configuracion minima. Solo sirve para confirmar que
+          la app esta instalada y activa; no hace falta abrirla nunca.
+        -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Pantalla completa que muestra la animacion de carga -->
+        <activity
+            android:name=".ChargeOverlayActivity"
+            android:exported="false"
+            android:theme="@style/OverlayTheme"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTop" />
+
+        <!--
+          ACTION_POWER_CONNECTED esta en la lista de broadcasts implicitos
+          exentos de las restricciones de Android 8+, asi que este receptor
+          declarado en el manifest funciona sin necesidad de un servicio
+          en primer plano.
+        -->
+        <receiver
+            android:name=".PowerConnectReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
