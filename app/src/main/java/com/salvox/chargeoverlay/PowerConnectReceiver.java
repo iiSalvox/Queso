@@ -1,31 +1,41 @@
 package com.salvox.chargeoverlay;
 
+import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.PowerManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
 
 public class PowerConnectReceiver extends BroadcastReceiver {
 
+    private static final String TAG = "SalvoxCharge";
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "onReceive: " + intent.getAction());
+
         if (!Intent.ACTION_POWER_CONNECTED.equals(intent.getAction())) {
             return;
         }
 
-        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        boolean screenOff = pm != null && !pm.isInteractive();
+        KeyguardManager km = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+        boolean locked = km != null && km.isKeyguardLocked();
+        Log.d(TAG, "isKeyguardLocked=" + locked);
 
-        // Solo se dispara si el usuario enchufa con la pantalla apagada/bloqueada,
-        // tal y como se pidio. Si la pantalla ya esta encendida, no hacemos nada.
-        if (!screenOff) {
+        if (!locked) {
+            Log.d(TAG, "No esta bloqueado, no se muestra overlay");
             return;
         }
 
-        Intent overlay = new Intent(context, ChargeOverlayActivity.class);
-        overlay.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_NO_HISTORY
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        context.startActivity(overlay);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(context)) {
+            Log.e(TAG, "Falta permiso 'Mostrar sobre otras apps' - no se puede mostrar overlay");
+            return;
+        }
+
+        Log.d(TAG, "Arrancando ChargeOverlayService");
+        Intent serviceIntent = new Intent(context, ChargeOverlayService.class);
+        context.startService(serviceIntent);
     }
 }
