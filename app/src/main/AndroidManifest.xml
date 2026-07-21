@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -12,8 +14,8 @@
         android:theme="@style/AppTheme">
 
         <!--
-          Activity de configuracion minima. Solo sirve para confirmar que
-          la app esta instalada y activa; no hace falta abrirla nunca.
+          Pantalla desde la que se concede el permiso "Mostrar sobre otras apps",
+          imprescindible para que el overlay pueda dibujarse en segundo plano.
         -->
         <activity
             android:name=".SettingsActivity"
@@ -24,21 +26,21 @@
             </intent-filter>
         </activity>
 
-        <!-- Pantalla completa que muestra la animacion de carga -->
-        <activity
-            android:name=".ChargeOverlayActivity"
-            android:exported="false"
-            android:theme="@style/OverlayTheme"
-            android:excludeFromRecents="true"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:launchMode="singleTop" />
+        <!--
+          Servicio que dibuja la animacion como ventana superpuesta (overlay).
+          A diferencia de una Activity, esto SI puede lanzarse desde un
+          BroadcastReceiver en segundo plano sin chocar con las restricciones
+          de Android 10+ / MIUI sobre "iniciar actividades en background".
+        -->
+        <service
+            android:name=".ChargeOverlayService"
+            android:exported="false" />
 
         <!--
           ACTION_POWER_CONNECTED esta en la lista de broadcasts implicitos
           exentos de las restricciones de Android 8+, asi que este receptor
-          declarado en el manifest funciona sin necesidad de un servicio
-          en primer plano.
+          declarado en el manifest funciona sin necesitar un servicio en
+          primer plano corriendo todo el rato.
         -->
         <receiver
             android:name=".PowerConnectReceiver"
